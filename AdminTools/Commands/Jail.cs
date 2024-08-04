@@ -7,6 +7,8 @@ using PlayerRoles;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UncomplicatedCustomRoles.Extensions;
+using UncomplicatedCustomRoles.Interfaces;
 
 namespace AdminTools.Commands
 {
@@ -70,7 +72,8 @@ namespace AdminTools.Commands
             if (Main.JailedPlayers.ContainsKey(player.UserId))
                 return;
             if (!skipadd)
-            {
+            {                
+                player.TryGetCustomRole(out ICustomRole role);
                 Main.JailedPlayers.Add(player.UserId, new Jailed
                 {
                     Health = player.Health,
@@ -81,6 +84,8 @@ namespace AdminTools.Commands
                     Role = player.Role.Type,
                     CurrentRound = true,
                     Ammo = player.Ammo.ToDictionary(x => x.Key.GetAmmoType(), x => x.Value),
+                    HasCustomRole = player.HasCustomRole(),
+                    CustomRoleId = role?.Id
                 });
             }
 
@@ -99,12 +104,19 @@ namespace AdminTools.Commands
                 return;
             if (jail.CurrentRound)
             {
-                player.Role.Set(jail.Role, RoleSpawnFlags.None);
-                try
+                if (jail.HasCustomRole)
                 {
+                    player.SetCustomRoleSync((int)jail.CustomRoleId);
+                }
+                else
+                {
+                    player.Role.Set(jail.Role, RoleSpawnFlags.None);
+                }                
+                try
+                {                    
                     player.ResetInventory(jail.Items);
                     player.Health = jail.Health;
-                    player.Position = jail.RelativePosition.Position;
+                    player.Position = jail.RelativePosition.Position;                    
                     foreach (KeyValuePair<AmmoType, ushort> kvp in jail.Ammo)
                         player.Ammo[kvp.Key.GetItemType()] = kvp.Value;
                     player.SyncEffects(jail.Effects);
