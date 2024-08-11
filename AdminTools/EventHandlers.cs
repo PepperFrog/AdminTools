@@ -124,7 +124,7 @@ namespace AdminTools
 
 		public void OnChangingRole(ChangingRoleEventArgs ev)
 		{
-			if (plugin.Config.GodTuts && (ev.Reason is SpawnReason.ForceClass or SpawnReason.None))
+			if (plugin.Config.GodTuts && (ev.Reason is SpawnReason.ForceClass or SpawnReason.None) && !ev.Player.IsNPC)
 				ev.Player.IsGodModeEnabled = ev.NewRole == RoleTypeId.Tutorial;
 		}
 

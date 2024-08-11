@@ -3,10 +3,12 @@ using Exiled.API.Enums;
 using Exiled.API.Extensions;
 using Exiled.API.Features;
 using Exiled.Permissions.Extensions;
+using MEC;
 using PlayerRoles;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UncomplicatedCustomRoles.API.Features;
 using UncomplicatedCustomRoles.Extensions;
 using UncomplicatedCustomRoles.Interfaces;
 
@@ -73,7 +75,7 @@ namespace AdminTools.Commands
                 return;
             if (!skipadd)
             {                
-                player.TryGetCustomRole(out ICustomRole role);
+                player.TryGetSummonedInstance(out SummonedCustomRole role);
                 Main.JailedPlayers.Add(player.UserId, new Jailed
                 {
                     Health = player.Health,
@@ -85,7 +87,7 @@ namespace AdminTools.Commands
                     CurrentRound = true,
                     Ammo = player.Ammo.ToDictionary(x => x.Key.GetAmmoType(), x => x.Value),
                     HasCustomRole = player.HasCustomRole(),
-                    CustomRoleId = role?.Id
+                    CustomRoleId = role?.Role.Id
                 });
             }
 
@@ -113,16 +115,19 @@ namespace AdminTools.Commands
                     player.Role.Set(jail.Role, RoleSpawnFlags.None);
                 }                
                 try
-                {                    
-                    player.ResetInventory(jail.Items);
-                    player.Health = jail.Health;
-                    player.Position = jail.RelativePosition.Position;                    
-                    foreach (KeyValuePair<AmmoType, ushort> kvp in jail.Ammo)
-                        player.Ammo[kvp.Key.GetItemType()] = kvp.Value;
-                    player.SyncEffects(jail.Effects);
+                {
+                    Timing.CallDelayed(1f, () =>
+                    {                        
+                        player.ResetInventory(jail.Items);
+                        player.Health = jail.Health;
+                        player.Position = jail.RelativePosition.Position;
+                        foreach (KeyValuePair<AmmoType, ushort> kvp in jail.Ammo)
+                            player.Ammo[kvp.Key.GetItemType()] = kvp.Value;
+                        player.SyncEffects(jail.Effects);
 
-                    player.Inventory.SendItemsNextFrame = true;
-                    player.Inventory.SendAmmoNextFrame = true;
+                        player.Inventory.SendItemsNextFrame = true;
+                        player.Inventory.SendAmmoNextFrame = true;
+                    });                    
                 }
                 catch (Exception e)
                 {
