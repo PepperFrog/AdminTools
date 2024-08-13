@@ -2,7 +2,11 @@
 using Exiled.API.Enums;
 using Exiled.API.Extensions;
 using Exiled.API.Features;
+using Exiled.API.Features.Items;
+using Exiled.CustomItems;
+using Exiled.CustomItems.API.Features;
 using Exiled.Permissions.Extensions;
+using InventorySystem.Items;
 using MEC;
 using PlayerRoles;
 using System;
@@ -117,10 +121,20 @@ namespace AdminTools.Commands
                 try
                 {
                     Timing.CallDelayed(1f, () =>
-                    {                        
-                        player.ResetInventory(jail.Items);
-                        player.Health = jail.Health;
+                    {     
+                        player.ClearInventory();                        
+                        foreach (Item item in jail.Items)
+                        {
+                            if(CustomItem.TryGet(item, out CustomItem ci)){
+                                player.AddItem(item);
+                            }
+                            else
+                            {
+                                player.AddItem(item.Base);
+                            }                            
+                        }
                         player.Position = jail.RelativePosition.Position;
+                        player.Health = jail.Health;                        
                         foreach (KeyValuePair<AmmoType, ushort> kvp in jail.Ammo)
                             player.Ammo[kvp.Key.GetItemType()] = kvp.Value;
                         player.SyncEffects(jail.Effects);
