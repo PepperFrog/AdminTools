@@ -36,7 +36,7 @@ namespace AdminTools.Commands
                 return false;
             }
 
-            if (quotedArgs.Count() != 5 || quotedArgs.Count() != 3)
+            if (quotedArgs.Length != 5 && quotedArgs.Length != 3)
             {
                 response = "Usage: spawnragdoll ((player id / name) or (all / *)) (RoleTypeId) (amount) (nameRagdoll) (deathReason)";
                 return false;
