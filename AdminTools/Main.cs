@@ -32,7 +32,7 @@ namespace AdminTools
 		public override string Prefix { get; } = "AdminTools";
 		public override PluginPriority Priority { get; } = (PluginPriority)1;
 		public override Version Version { get; } = new(7, 1, 6);
-        public override Version RequiredExiledVersion { get; } = new(8, 14, 1);
+        public override Version RequiredExiledVersion { get; } = new(9, 0, 1);
 
         public static Main Instance;
         

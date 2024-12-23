@@ -3,10 +3,13 @@ using Exiled.API.Enums;
 using Exiled.API.Extensions;
 using Exiled.API.Features;
 using Exiled.Permissions.Extensions;
+using Exiled.API.Features.Items;
+using MEC;
 using PlayerRoles;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Exiled.CustomItems.API.Features;
 
 namespace AdminTools.Commands
 {
@@ -102,15 +105,29 @@ namespace AdminTools.Commands
                 player.Role.Set(jail.Role, RoleSpawnFlags.None);
                 try
                 {
-                    player.ResetInventory(jail.Items);
-                    player.Health = jail.Health;
-                    player.Position = jail.RelativePosition.Position;
-                    foreach (KeyValuePair<AmmoType, ushort> kvp in jail.Ammo)
-                        player.Ammo[kvp.Key.GetItemType()] = kvp.Value;
-                    player.SyncEffects(jail.Effects);
-
-                    player.Inventory.SendItemsNextFrame = true;
-                    player.Inventory.SendAmmoNextFrame = true;
+                    Timing.CallDelayed(1f, () =>
+                    {
+                        player.ClearInventory();
+                        foreach (Item item in jail.Items)
+                        {
+                            if (CustomItem.TryGet(item, out CustomItem ci))
+                            {
+                                player.AddItem(item);
+                            }
+                            else
+                            {
+                                player.AddItem(item.Base);
+                            }
+                        }
+                        player.Position = jail.RelativePosition.Position;
+                        player.Health = jail.Health;
+                        foreach (KeyValuePair<AmmoType, ushort> kvp in jail.Ammo)
+                            player.Ammo[kvp.Key.GetItemType()] = kvp.Value;
+                        player.SyncEffects(jail.Effects);
+                        
+                        player.Inventory.SendItemsNextFrame = true;
+                        player.Inventory.SendAmmoNextFrame = true;
+                    });
                 }
                 catch (Exception e)
                 {
